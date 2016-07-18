@@ -9,5 +9,8 @@
     <dimen name="x_offset_round_weather">85dp</dimen>
     <dimen name="y_offset_weather">120dp</dimen>
     <dimen name="text_size_weather">20dp</dimen>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
 
 </resources>

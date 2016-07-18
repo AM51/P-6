@@ -48,7 +48,7 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
 
     @Override
     public Engine onCreateEngine() {
-        Log.v("archit","Engine cons");
+        Log.e("test","Engine cons");
         return new WatchFaceEngine();
     }
 
@@ -78,12 +78,12 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
         private float mXOffsetWeatherDetails;
         private float mYOffsetWeatherDetails;
 
-        private int mBackgroundColor = Color.parseColor( "blue" );
-        private int mTextColor = Color.parseColor( "red" );
+        private int mBackgroundColor = Color.parseColor( "red" );
+        private int mTextColor = Color.parseColor( "blue" );
 
         private String location;
 
-        private String TAG = "archit";
+        private String TAG = "mittal";
 
 
         GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(CustomWatchFaceService.this)
@@ -124,7 +124,8 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
             super.onCreate(holder);
 
 
-            Log.v("archit","Inside on create");
+            Log.e("test","Creating Custom Service");
+            //Log.v("archit","Inside on create");
             setWatchFaceStyle( new WatchFaceStyle.Builder( CustomWatchFaceService.this )
                     .setBackgroundVisibility( WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE )
                     .setCardPeekMode( WatchFaceStyle.PEEK_MODE_VARIABLE )
@@ -137,6 +138,7 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
             initBackground();
             initDisplayText();
             initWeatherDetaialsText();
+            mGoogleApiClient.connect();
 
         }
 
@@ -282,7 +284,7 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
 
             mDisplayTime.setToNow();
 
-            Log.v("archit",bounds.toString());
+            //Log.v("archit",bounds.toString());
             drawBackground( canvas, bounds );
             drawTimeText( canvas );
             drawWeatherImage( canvas );
@@ -314,7 +316,7 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
                 timeText += String.format( ":%02d", mDisplayTime.second);
             }
 
-            Log.v("archit",mXOffset+" "+mYOffset);
+            //Log.v("archit",mXOffset+" "+mYOffset);
             canvas.drawText( timeText, mXOffset, mYOffset, mTextColorPaint );
         }
 
@@ -329,10 +331,11 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
 
         @Override
         public void onDataChanged(DataEventBuffer dataEventBuffer) {
+            Log.e("test","data changed");
             for (DataEvent dataEvent : dataEventBuffer) {
                 DataItem dataItem = dataEvent.getDataItem();
                 if(dataItem.getUri().getPath().compareTo(PATH_WITH_FEATURE) == 0){
-                    Log.v("archit","event received");
+                    Log.e("test","event received");
                 }
                 //possible position to get location
             }
@@ -346,6 +349,7 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
                 Log.d(TAG, "Connected to Google Api Service");
             }
+            Log.e("test","added listener");
             Wearable.DataApi.addListener(mGoogleApiClient, this);
         }
 

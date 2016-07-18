@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Wearables</string>
     <string name="my_analog_name">My Analog</string>
+    <string name="title_activity_wearable_location">WearableLocationActivity</string>
 </resources>

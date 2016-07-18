@@ -48,11 +48,25 @@ import android.widget.TextView;
 import com.example.android.sunshine.app.configActivities.LocationSyncActivity;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
+
+import java.util.Date;
 
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link android.support.v7.widget.RecyclerView} layout.
  */
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener ,
+                DataApi.DataListener,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener{
     public static final String LOG_TAG = ForecastFragment.class.getSimpleName();
     private ForecastAdapter mForecastAdapter;
     private RecyclerView mRecyclerView;
@@ -60,6 +74,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private int mChoiceMode;
     private boolean mHoldForTransition;
     private long mInitialSelectedDate = -1;
+
+    GoogleApiClient mGoogleApiClient;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -96,6 +112,26 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
 
+    @Override
+    public void onConnected(Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onDataChanged(DataEventBuffer dataEventBuffer) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
     /**
      * A callback interface that all activities containing this fragment must
      * implement. This mechanism allows activities to be notified of item
@@ -116,6 +152,26 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
+        mGoogleApiClient = new GoogleApiClient.Builder(getContext())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Wearable.API)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+
+    }
+
+    @Override
+    public void onStop() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+        super.onStop();
     }
 
     @Override
@@ -404,8 +460,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         use to determine why they aren't seeing weather.
      */
     private void updateEmptyView() {
-        Intent intent = new Intent(getContext(),LocationSyncActivity.class);
-        startActivity(intent);
+        //Intent intent = new Intent(getContext(),LocationSyncActivity.class);
+        //startActivity(intent);
+        updateLocationOnWearable();
         if ( mForecastAdapter.getItemCount() == 0 ) {
             TextView tv = (TextView) getView().findViewById(R.id.recyclerview_forecast_empty);
             if ( null != tv ) {
@@ -430,6 +487,32 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 tv.setText(message);
             }
         }
+    }
+
+    private void updateLocationOnWearable() {
+
+        String location = Utility.getPreferredLocation(getContext());
+        String PATH_WITH_FEATURE = "/watch_face_config/Digital";
+        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(PATH_WITH_FEATURE);
+//        putDataMapReq.getDataMap().putString("location",location);
+        putDataMapReq.getDataMap().putLong("time",new Date().getTime());
+        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+        PendingResult<DataApi.DataItemResult> pendingResult =
+                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+
+            @Override
+            public void onResult(DataApi.DataItemResult dataItemResult) {
+                if(dataItemResult.getStatus().isSuccess()) {
+                    Log.e("test", "Data item set: " + dataItemResult.getDataItem().getUri());
+                } else {
+                    Log.e("test","Failure in sending data");
+                }
+            }
+        });
+
+        Log.e("test","sent event to app");
+
     }
 
     @Override
