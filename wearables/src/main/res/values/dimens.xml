@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="analog_hand_stroke">3dp</dimen>
+    <dimen name="x_offset_square">15dp</dimen>
+    <dimen name="x_offset_round">25dp</dimen>
+    <dimen name="y_offset">80dp</dimen>
+    <dimen name="text_size">40dp</dimen>
+    <dimen name="x_offset_square_weather">75dp</dimen>
+    <dimen name="x_offset_round_weather">85dp</dimen>
+    <dimen name="y_offset_weather">120dp</dimen>
+    <dimen name="text_size_weather">20dp</dimen>
+
+</resources>
