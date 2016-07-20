@@ -1,4 +1,4 @@
-package com.example.wearables;
+package com.example.android.sunshine.app;
 
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
