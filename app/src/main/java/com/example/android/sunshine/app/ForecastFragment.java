@@ -492,10 +492,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private void updateLocationOnWearable() {
 
         String location = Utility.getPreferredLocation(getContext());
+        Log.e("test","In func :: "+location);
         String PATH_WITH_FEATURE = "/watch_face_config/Digital";
         PutDataMapRequest putDataMapReq = PutDataMapRequest.create(PATH_WITH_FEATURE);
 //        putDataMapReq.getDataMap().putString("location",location);
         putDataMapReq.getDataMap().putLong("time",new Date().getTime());
+        putDataMapReq.getDataMap().putString("location",location);
         PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
         PendingResult<DataApi.DataItemResult> pendingResult =
                 Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
@@ -518,6 +520,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(getString(R.string.pref_location_status_key))) {
+            String location = sharedPreferences.getString("location", "def");
+            Log.e("test",location);
             updateEmptyView();
         }
     }

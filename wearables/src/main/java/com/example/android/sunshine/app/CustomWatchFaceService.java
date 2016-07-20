@@ -35,6 +35,7 @@ import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
 import java.util.TimeZone;
@@ -336,6 +337,9 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
                 DataItem dataItem = dataEvent.getDataItem();
                 if(dataItem.getUri().getPath().compareTo(PATH_WITH_FEATURE) == 0){
                     Log.e("test","event received");
+                    DataMap dataMap = DataMapItem.fromDataItem(dataItem).getDataMap();
+                    Log.e("test","time : "+dataMap.get("time"));
+                    Log.e("test","location : "+dataMap.get("location"));
                 }
                 //possible position to get location
             }
