@@ -22,6 +22,7 @@ import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -58,6 +59,15 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 
 /**
@@ -76,6 +86,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private long mInitialSelectedDate = -1;
 
     GoogleApiClient mGoogleApiClient;
+    PutDataMapRequest putDataMapReq;
+
+    public static final String OPEN_WEATHER_MAP_API_KEY = "907b41d7594cbd66a22ea65edbaf3ea0";
+    private String WEATHER_DETAILS_NOT_AVAILABLE = "Weather Details Not Available";
+    public String apiString;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -494,26 +509,30 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         String location = Utility.getPreferredLocation(getContext());
         Log.e("test","In func :: "+location);
         String PATH_WITH_FEATURE = "/watch_face_config/Digital";
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create(PATH_WITH_FEATURE);
+        putDataMapReq = PutDataMapRequest.create(PATH_WITH_FEATURE);
 //        putDataMapReq.getDataMap().putString("location",location);
         putDataMapReq.getDataMap().putLong("time",new Date().getTime());
         putDataMapReq.getDataMap().putString("location",location);
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        PendingResult<DataApi.DataItemResult> pendingResult =
-                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
 
-            @Override
-            public void onResult(DataApi.DataItemResult dataItemResult) {
-                if(dataItemResult.getStatus().isSuccess()) {
-                    Log.e("test", "Data item set: " + dataItemResult.getDataItem().getUri());
-                } else {
-                    Log.e("test","Failure in sending data");
-                }
-            }
-        });
-
-        Log.e("test","sent event to app");
+        new FetchCurrentWeatherTask().execute(location);
+        //String weatherDetails = new FetchCurrentWeatherTask().doInBackground(location);
+        //putDataMapReq.getDataMap().putString("temp_details",weatherDetails);
+//        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+//        PendingResult<DataApi.DataItemResult> pendingResult =
+//                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+//        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+//
+//            @Override
+//            public void onResult(DataApi.DataItemResult dataItemResult) {
+//                if(dataItemResult.getStatus().isSuccess()) {
+//                    Log.e("test", "Data item set: " + dataItemResult.getDataItem().getUri());
+//                } else {
+//                    Log.e("test","Failure in sending data");
+//                }
+//            }
+//        });
+//
+//        Log.e("test","sent event to app");
 
     }
 
@@ -523,6 +542,145 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             String location = sharedPreferences.getString("location", "def");
             Log.e("test",location);
             updateEmptyView();
+        }
+    }
+
+
+    public class FetchCurrentWeatherTask extends AsyncTask<String,String,String> {
+        @Override
+        protected String doInBackground(String... params) {
+
+            String location = params[0];
+            String weatherDetails = getWeatherDetails(location);
+            return weatherDetails;
+        }
+
+        @Override
+        protected void onPostExecute(String weatherDetails) {
+
+            Log.e("test","api response : "+apiString);
+            Log.e("test","weather details : "+weatherDetails);
+            putDataMapReq.getDataMap().putString("temp_details",weatherDetails);
+            PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+            PendingResult<DataApi.DataItemResult> pendingResult =
+                    Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+            pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                @Override
+                public void onResult(DataApi.DataItemResult dataItemResult) {
+                    if(dataItemResult.getStatus().isSuccess()) {
+                        Log.e("test", "Data item set: " + dataItemResult.getDataItem().getUri());
+                    } else {
+                        Log.e("test","Failure in sending data");
+                    }
+                }
+            });
+
+            Log.e("test","sent event to app");
+            super.onPostExecute(weatherDetails);
+        }
+
+        private String getWeatherDetails(String locationQuery){
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+            String forecastJsonStr = null;
+
+            String units = "metric";
+
+            try {
+                final String FORECAST_BASE_URL =
+                        "http://api.openweathermap.org/data/2.5/weather?";
+                final String QUERY_PARAM = "q";
+                final String UNITS_PARAM = "units";
+                final String APPID_PARAM = "APPID";
+
+                Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+                        .appendQueryParameter(QUERY_PARAM, locationQuery)
+                        .appendQueryParameter(UNITS_PARAM, units)
+                        .appendQueryParameter(APPID_PARAM, OPEN_WEATHER_MAP_API_KEY)
+                        .build();
+
+                Log.e("test","URL :: "+builtUri.toString());
+                URL url = new URL(builtUri.toString());
+
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+
+                Log.e("test","connecting using url");
+                urlConnection.connect();
+
+                InputStream inputStream = urlConnection.getInputStream();
+                Log.e("test","getting response from url");
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    return WEATHER_DETAILS_NOT_AVAILABLE;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line + "\n");
+                }
+
+                if (buffer.length() == 0) {
+                    return WEATHER_DETAILS_NOT_AVAILABLE;
+                }
+                forecastJsonStr = buffer.toString();
+                String temperatureDetails = getWeatherDataFromJson(forecastJsonStr);
+
+                return temperatureDetails;
+
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Error ", e);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e(LOG_TAG, "Error closing stream", e);
+                    }
+                }
+            }
+            return  WEATHER_DETAILS_NOT_AVAILABLE;
+        }
+
+
+        private String getWeatherDataFromJson(String forecastJsonStr)
+                throws JSONException {
+
+
+            Log.e("test","Getting temperature data");
+            final String OWM_MESSAGE_CODE = "cod";
+
+            try {
+                JSONObject forecastJson = new JSONObject(forecastJsonStr);
+
+//                if ( forecastJson.has(OWM_MESSAGE_CODE) ) {
+//                    Log.e("test","Details Not Available");
+//                    return WEATHER_DETAILS_NOT_AVAILABLE;
+//                }
+
+                JSONObject weatherDetails = forecastJson.getJSONObject("main");
+                System.out.println("jsonObject :: "+weatherDetails.toString());
+                apiString = weatherDetails.toString();
+                Log.e("test","jsonObject :: "+weatherDetails.toString());
+                double temp_min = weatherDetails.getDouble("temp_min");
+                double temp_max = weatherDetails.getDouble("temp_max");
+
+                return temp_min+" "+temp_max;
+
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
+            return WEATHER_DETAILS_NOT_AVAILABLE;
+
         }
     }
 }
