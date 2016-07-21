@@ -86,6 +86,8 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
 
         private String weatherText;
 
+        private String weatherId;
+
         private String TAG = "mittal";
 
 
@@ -305,7 +307,16 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
 
         private void drawWeatherImage(Canvas canvas) {
 
-            Drawable d = getResources().getDrawable(R.drawable.art_clear);
+
+            Drawable d;
+
+            if (weatherId != null) {
+                int artResourceForWeatherCondition = Utility.getArtResourceForWeatherCondition(Integer.parseInt(weatherId));
+                d = getResources().getDrawable(artResourceForWeatherCondition);
+            } else {
+                d = getResources().getDrawable(R.drawable.art_clear);
+            }
+
             d.setBounds(50, 150, 100, 200);
             d.draw(canvas);
         }
@@ -346,7 +357,9 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
                     Log.e("test","time : "+dataMap.get("time"));
                     Log.e("test","location : "+dataMap.get("location"));
                     Log.e("test","temp : "+dataMap.get("temp_details"));
+                    Log.e("test","weather Id :: "+dataMap.getString("weatherId"));
                     weatherText = dataMap.get("temp_details");
+                    weatherId = dataMap.getString("weatherId");
                     invalidate();
                 }
                 //possible position to get location

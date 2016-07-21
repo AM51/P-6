@@ -59,6 +59,7 @@ import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -561,6 +562,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             Log.e("test","api response : "+apiString);
             Log.e("test","weather details : "+weatherDetails);
             putDataMapReq.getDataMap().putString("temp_details",weatherDetails);
+            putDataMapReq.getDataMap().putString("weatherId",apiString);
             PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
             PendingResult<DataApi.DataItemResult> pendingResult =
                     Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
@@ -666,9 +668,15 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 //                    return WEATHER_DETAILS_NOT_AVAILABLE;
 //                }
 
+                JSONArray weather = forecastJson.getJSONArray("weather");
+                JSONObject o = (JSONObject) weather.get(0);
+                int weatherId = o.getInt("id");
+                apiString = String.valueOf(weatherId);
+                Log.e("test","Weather Id :: "+weatherId);
+
                 JSONObject weatherDetails = forecastJson.getJSONObject("main");
                 System.out.println("jsonObject :: "+weatherDetails.toString());
-                apiString = weatherDetails.toString();
+                //apiString = weatherDetails.toString();
                 Log.e("test","jsonObject :: "+weatherDetails.toString());
                 double temp_min = weatherDetails.getDouble("temp_min");
                 double temp_max = weatherDetails.getDouble("temp_max");
