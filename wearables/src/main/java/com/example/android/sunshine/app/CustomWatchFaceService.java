@@ -79,8 +79,8 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
         private float mXOffsetWeatherDetails;
         private float mYOffsetWeatherDetails;
 
-        private int mBackgroundColor = Color.parseColor( "red" );
-        private int mTextColor = Color.parseColor( "blue" );
+        private int mBackgroundColor = Color.parseColor( "blue" );
+        private int mTextColor = Color.parseColor( "white" );
 
         private String location;
 
@@ -317,7 +317,7 @@ public class CustomWatchFaceService extends CanvasWatchFaceService {
                 d = getResources().getDrawable(R.drawable.art_clear);
             }
 
-            d.setBounds(50, 150, 100, 200);
+            d.setBounds(50, 175, 100, 225);
             d.draw(canvas);
         }
 

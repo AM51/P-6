@@ -24,7 +24,7 @@
                 android:resource="@xml/watch_face" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview"
-                android:resource="@drawable/preview_analog" />
+                android:resource="@drawable/preview_weather" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.companionConfigurationAction"
                 android:value="com.example.android.wearable.watchface.CONFIG_WATCH_FACE" />
@@ -33,7 +33,7 @@
                 android:value="com.example.android.wearable.watchface.CONFIG_WATCH_FACE" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview_circular"
-                android:resource="@drawable/preview_analog" />
+                android:resource="@drawable/preview_weather_round" />
 
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />

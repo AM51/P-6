@@ -333,12 +333,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
             getActivity().supportPostponeEnterTransition();
         }
         getLoaderManager().initLoader(FORECAST_LOADER, null, this);
+        updateLocationOnWearable();
         super.onActivityCreated(savedInstanceState);
     }
 
     // since we read the location when we create the loader, all we need to do is restart things
     void onLocationChanged() {
         getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
+        updateLocationOnWearable();
     }
 
     private void openPreferredLocationInMap() {
@@ -681,7 +683,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 double temp_min = weatherDetails.getDouble("temp_min");
                 double temp_max = weatherDetails.getDouble("temp_max");
 
-                return temp_min+" "+temp_max;
+                int minTemp = (int) temp_min;
+                int maxTemp = (int) temp_max;
+                return maxTemp+"° "+minTemp+"°";
+                //return temp_min+" "+temp_max;
 
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
